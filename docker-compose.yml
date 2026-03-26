@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: steam-watcher-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=file:./data/prod.db
+      - PORT=4000
+      - CORS_ORIGIN=http://localhost:5173
+      - STEAM_CC=cn
+      - STEAM_LANGUAGE=schinese
+      - DAILY_CRON=0 3 * * *
+      - THROTTLE_TTL=60000
+      - THROTTLE_LIMIT=60
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: steam-watcher-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  db_data:

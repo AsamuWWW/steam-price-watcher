@@ -28,4 +28,4 @@ RUN mkdir -p /app/data
 
 EXPOSE 4000
 
-CMD sh -c "npx prisma migrate deploy && node dist/main"
+CMD sh -c "npx prisma db push && node dist/src/main"
