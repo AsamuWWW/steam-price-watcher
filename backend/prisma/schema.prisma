@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id           Int             @id @default(autoincrement())
+  steamAppId   Int             @unique
+  name         String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  watches      Watch[]
+  priceHistory PriceSnapshot[]
+}
+
+model Watch {
+  id                   Int            @id @default(autoincrement())
+  gameId               Int
+  game                 Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  enabled              Boolean        @default(true)
+  discountThreshold    Int            @default(50)
+  priceThresholdEnabled Boolean       @default(false)
+  priceThresholdCents  Int?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  notifications        Notification[]
+}
+
+model PriceSnapshot {
+  id             Int      @id @default(autoincrement())
+  gameId         Int
+  game           Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  currency       String   @default("CNY")
+  finalCents     Int
+  initialCents   Int
+  discountPercent Int
+  isFree         Boolean  @default(false)
+  status         String   @default("OK")
+  fetchedAt      DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  watchId   Int
+  watch     Watch    @relation(fields: [watchId], references: [id], onDelete: Cascade)
+  type      String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  metaJson  String
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model JobRun {
+  id          Int       @id @default(autoincrement())
+  jobName     String
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  status      String
+  error       String?
+  statsJson   String?
+}
